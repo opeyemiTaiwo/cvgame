@@ -19,7 +19,7 @@ header {visibility: hidden;}
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# The complete HTML game code
+# The complete HTML game code with INCREASED DIFFICULTY
 html_game = """
 <!DOCTYPE html>
 <html lang="en">
@@ -169,6 +169,19 @@ html_game = """
             margin: 10px 0;
             font-size: 1.3em;
         }
+        #speedIndicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            z-index: 50;
+            border: 3px solid #ff0000;
+        }
     </style>
 </head>
 <body>
@@ -179,6 +192,7 @@ html_game = """
             <p class="instruction">🖱️ Move your <span class="highlight">MOUSE</span> to catch stars!</p>
             <p class="instruction">⭐ Don't miss <span class="highlight">10 stars</span>!</p>
             <p class="instruction">🔥 Build <span class="highlight">COMBOS</span> for bonus!</p>
+            <p class="instruction" style="color: #ff9900;">⚡ Gets FASTER every level!</p>
             <button class="startBtn" onclick="startGame()">▶ START!</button>
         </div>
         <div id="gameOverScreen" class="hidden">
@@ -202,6 +216,9 @@ html_game = """
                 <span class="scoreValue missed" id="missed">0/10</span>
             </div>
         </div>
+        <div id="speedIndicator" class="hidden">
+            ⚡ Speed: <span id="speedValue">100</span>%
+        </div>
         <div id="comboDisplay" class="hidden">
             COMBO x<span id="combo">0</span>! 🔥
         </div>
@@ -224,7 +241,7 @@ html_game = """
         let basket = { x: 0, y: 0, size: 80 };
         let mouse = { x: 0, y: 0 };
         let spawnTimer = 0, gameSpeed = 1;
-        const starColors = ['#FFD700', '#FFFF00', '#FF1493', '#FF69B4', '#00BFFF', '#00FF7F', '#DA70D6', '#FFA500'];
+        const starColors = ['#FFD700', '#FFFF00', '#FF1493', '#FF69B4', '#00BFFF', '#00FF7F', '#DA70D6', '#FFA500', '#FF6347', '#7FFF00', '#FF00FF', '#00FFFF'];
         document.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
@@ -240,7 +257,7 @@ html_game = """
                 this.x = Math.random() * (canvas.width - 60) + 30;
                 this.y = -50;
                 this.size = 25 + Math.random() * 20;
-                this.speed = (2 + Math.random() * 2) * gameSpeed;
+                this.speed = (3 + Math.random() * 3) * gameSpeed;
                 this.color = starColors[Math.floor(Math.random() * starColors.length)];
                 this.rotation = 0;
                 this.caught = false;
@@ -248,7 +265,7 @@ html_game = """
             update() {
                 if (!this.caught) {
                     this.y += this.speed;
-                    this.rotation += 3;
+                    this.rotation += 4;
                 }
             }
             draw() {
@@ -327,7 +344,7 @@ html_game = """
             ctx.restore();
         }
         function explode(x, y, color) {
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 25; i++) {
                 particles.push(new Particle(x, y, color));
             }
         }
@@ -335,6 +352,7 @@ html_game = """
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;
             document.getElementById('missed').textContent = missed + '/10';
+            document.getElementById('speedValue').textContent = Math.round(gameSpeed * 100);
             if (combo > 1) {
                 document.getElementById('combo').textContent = combo;
                 document.getElementById('comboDisplay').classList.remove('hidden');
@@ -347,8 +365,10 @@ html_game = """
             ctx.fillStyle = 'rgba(26, 26, 46, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             spawnTimer++;
-            if (spawnTimer > Math.max(20, 50 - level * 3)) {
-                if (stars.length < Math.min(15, 5 + level)) {
+            const spawnRate = Math.max(15, 45 - level * 4);
+            const maxStarsOnScreen = Math.min(25, 8 + level * 2);
+            if (spawnTimer > spawnRate) {
+                if (stars.length < maxStarsOnScreen) {
                     stars.push(new Star());
                 }
                 spawnTimer = 0;
@@ -384,10 +404,10 @@ html_game = """
                 if (particles[i].life <= 0) particles.splice(i, 1);
             }
             drawBasket();
-            const newLevel = Math.floor(score / 200) + 1;
+            const newLevel = Math.floor(score / 150) + 1;
             if (newLevel > level) {
                 level = newLevel;
-                gameSpeed = 1 + (level - 1) * 0.15;
+                gameSpeed = 1 + (level - 1) * 0.3;
                 updateUI();
             }
             requestAnimationFrame(gameLoop);
@@ -395,6 +415,7 @@ html_game = """
         function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('scoreBoard').classList.remove('hidden');
+            document.getElementById('speedIndicator').classList.remove('hidden');
             document.getElementById('instructions').classList.remove('hidden');
             score = 0; combo = 0; maxCombo = 0; missed = 0; level = 1;
             gameSpeed = 1; stars = []; particles = []; spawnTimer = 0;
