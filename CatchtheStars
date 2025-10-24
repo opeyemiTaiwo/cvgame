@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Stars! 🌟 - Kids Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            border: 5px solid #00d4ff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 5em;
+            background: linear-gradient(45deg, #00d4ff, #ff00ff, #ffff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            margin-bottom: 30px;
+            animation: rainbow 3s ease infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(360deg); }
+        }
+
+        .instruction {
+            font-size: 1.8em;
+            margin: 15px 0;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .highlight {
+            color: #00ff00;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .startBtn {
+            background: linear-gradient(45deg, #00d4ff, #ff00ff);
+            border: none;
+            color: white;
+            font-size: 2.5em;
+            padding: 25px 80px;
+            margin: 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 40px rgba(255, 0, 255, 0.8); }
+        }
+
+        .startBtn:hover {
+            transform: scale(1.1) !important;
+            background: linear-gradient(45deg, #ff00ff, #00d4ff);
+        }
+
+        .startBtn:active {
+            transform: scale(0.95) !important;
+        }
+
+        #scoreBoard {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 25px;
+            border-radius: 20px;
+            border: 4px solid #00d4ff;
+            z-index: 50;
+            font-size: 1.5em;
+            min-width: 250px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .scoreItem {
+            margin: 8px 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .scoreLabel {
+            color: #aaa;
+        }
+
+        .scoreValue {
+            color: #00ff00;
+            font-size: 1.2em;
+        }
+
+        .level { color: #ff9900 !important; }
+        .combo { color: #ff00ff !important; }
+        .missed { color: #ff0000 !important; }
+
+        #comboDisplay {
+            position: absolute;
+            top: 120px;
+            right: 30px;
+            background: linear-gradient(45deg, #ff00ff, #ff0080);
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            z-index: 50;
+            animation: comboAnim 0.5s ease;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+        }
+
+        @keyframes comboAnim {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 50px;
+            border-radius: 20px;
+            font-size: 1.4em;
+            z-index: 50;
+            animation: float 3s ease-in-out infinite;
+            color: #00ff00;
+            border: 3px solid #00ff00;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-15px); }
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            display: inline-block;
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #levelUpMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff9900, #ffff00);
+            padding: 40px 80px;
+            border-radius: 30px;
+            font-size: 4em;
+            font-weight: bold;
+            color: white;
+            z-index: 200;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            animation: levelUpAnim 1s ease;
+        }
+
+        @keyframes levelUpAnim {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2) rotate(10deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .stat {
+            margin: 10px 0;
+            font-size: 1.3em;
+        }
+
+        /* Mobile friendly */
+        @media (max-width: 768px) {
+            h1 { font-size: 3em; }
+            .instruction { font-size: 1.2em; }
+            .startBtn { font-size: 1.8em; padding: 20px 50px; }
+            #scoreBoard { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="startScreen">
+            <h1 class="emoji">🌟</h1>
+            <h1>CATCH THE STARS!</h1>
+            <p class="instruction">🖱️ Move your <span class="highlight">MOUSE</span> to catch falling stars!</p>
+            <p class="instruction">📱 On mobile? Use your <span class="highlight">FINGER</span>!</p>
+            <p class="instruction">⭐ Don't miss <span class="highlight">10 stars</span> or game over!</p>
+            <p class="instruction">🔥 Build <span class="highlight">COMBOS</span> for bonus points!</p>
+            <button class="startBtn" onclick="startGame()">▶ START!</button>
+        </div>
+
+        <div id="gameOverScreen" class="hidden">
+            <h1>🎮 GAME OVER! 🎮</h1>
+            <div class="stat" id="finalScore"></div>
+            <div class="stat" id="finalStars"></div>
+            <div class="stat" id="finalCombo"></div>
+            <div class="stat" id="finalLevel"></div>
+            <button class="startBtn" onclick="restartGame()">🔄 PLAY AGAIN!</button>
+        </div>
+
+        <div id="scoreBoard" class="hidden">
+            <div class="scoreItem">
+                <span class="scoreLabel">Score:</span>
+                <span class="scoreValue" id="score">0</span>
+            </div>
+            <div class="scoreItem">
+                <span class="scoreLabel">Level:</span>
+                <span class="scoreValue level" id="level">1</span>
+            </div>
+            <div class="scoreItem">
+                <span class="scoreLabel">Missed:</span>
+                <span class="scoreValue missed" id="missed">0/10</span>
+            </div>
+        </div>
+
+        <div id="comboDisplay" class="hidden">
+            COMBO x<span id="combo">0</span>! 🔥
+        </div>
+
+        <div id="instructions" class="hidden">
+            <span class="emoji">⭐</span> Move to catch stars! <span class="emoji">⭐</span>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game state
+        let gameRunning = false;
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let missed = 0;
+        let level = 1;
+        let stars = [];
+        let particles = [];
+        let basket = { x: 0, y: 0, size: 80 };
+        let mouse = { x: 0, y: 0 };
+        let spawnTimer = 0;
+        let gameSpeed = 1;
+
+        // Star colors
+        const starColors = [
+            '#FFD700', '#FFFF00', '#FF1493', '#FF69B4',
+            '#00BFFF', '#00FF7F', '#DA70D6', '#FFA500',
+            '#FF6347', '#7FFF00', '#FF00FF', '#00FFFF'
+        ];
+
+        // Mouse tracking
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+
+        // Touch support
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            mouse.x = touch.clientX - rect.left;
+            mouse.y = touch.clientY - rect.top;
+        });
+
+        // Star class
+        class Star {
+            constructor() {
+                this.x = Math.random() * (canvas.width - 60) + 30;
+                this.y = -50;
+                this.size = 25 + Math.random() * 20;
+                this.speed = (2 + Math.random() * 2) * gameSpeed;
+                this.color = starColors[Math.floor(Math.random() * starColors.length)];
+                this.rotation = 0;
+                this.rotSpeed = 2 + Math.random() * 3;
+                this.caught = false;
+                this.wobble = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                if (!this.caught) {
+                    this.y += this.speed;
+                    this.rotation += this.rotSpeed;
+                    this.wobble += 0.1;
+                    this.x += Math.sin(this.wobble) * 1;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+
+                // Glow
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
+
+                // Star shape
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+                    const x = Math.cos(angle) * this.size;
+                    const y = Math.sin(angle) * this.size;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Center sparkle
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size / 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            checkCatch() {
+                const dx = this.x - basket.x;
+                const dy = this.y - basket.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < basket.size / 2 + this.size;
+            }
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10 - 3;
+                this.color = color;
+                this.life = 60;
+                this.size = 3 + Math.random() * 5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.3;
+                this.life--;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life / 60;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Draw basket/catcher
+        function drawBasket() {
+            basket.x = mouse.x;
+            basket.y = mouse.y;
+
+            ctx.save();
+            
+            // Glow effect
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = '#00d4ff';
+
+            // Basket body - gradient
+            const gradient = ctx.createRadialGradient(basket.x, basket.y, 0, basket.x, basket.y, basket.size/2);
+            gradient.addColorStop(0, '#00d4ff');
+            gradient.addColorStop(0.5, '#0080ff');
+            gradient.addColorStop(1, '#0040ff');
+            
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 4;
+            
+            // Draw circle basket
+            ctx.beginPath();
+            ctx.arc(basket.x, basket.y, basket.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner circle
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(basket.x, basket.y, basket.size / 3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Center dot
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(basket.x, basket.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Add explosion particles
+        function explode(x, y, color) {
+            for (let i = 0; i < 20; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('missed').textContent = `${missed}/10`;
+
+            if (combo > 1) {
+                document.getElementById('combo').textContent = combo;
+                document.getElementById('comboDisplay').classList.remove('hidden');
+            } else {
+                document.getElementById('comboDisplay').classList.add('hidden');
+            }
+        }
+
+        // Show level up message
+        function showLevelUp() {
+            const msg = document.createElement('div');
+            msg.id = 'levelUpMessage';
+            msg.textContent = `LEVEL ${level}! 🎉`;
+            document.getElementById('gameContainer').appendChild(msg);
+            setTimeout(() => msg.remove(), 1500);
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            // Clear canvas
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Spawn stars
+            spawnTimer++;
+            const spawnRate = Math.max(20, 50 - level * 3);
+            if (spawnTimer > spawnRate) {
+                const maxStars = Math.min(15, 5 + level);
+                if (stars.length < maxStars) {
+                    stars.push(new Star());
+                }
+                spawnTimer = 0;
+            }
+
+            // Update and draw stars
+            for (let i = stars.length - 1; i >= 0; i--) {
+                const star = stars[i];
+                star.update();
+                star.draw();
+
+                // Check catch
+                if (star.checkCatch() && !star.caught) {
+                    star.caught = true;
+                    score += 10 + combo * 5;
+                    combo++;
+                    maxCombo = Math.max(maxCombo, combo);
+                    explode(star.x, star.y, star.color);
+                    stars.splice(i, 1);
+                    updateUI();
+                    continue;
+                }
+
+                // Check if missed
+                if (star.y > canvas.height + 50) {
+                    missed++;
+                    combo = 0;
+                    stars.splice(i, 1);
+                    updateUI();
+
+                    if (missed >= 10) {
+                        endGame();
+                        return;
+                    }
+                }
+            }
+
+            // Update and draw particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // Draw basket
+            drawBasket();
+
+            // Level up
+            const newLevel = Math.floor(score / 200) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                gameSpeed = 1 + (level - 1) * 0.15;
+                showLevelUp();
+                updateUI();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start game
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('scoreBoard').classList.remove('hidden');
+            document.getElementById('instructions').classList.remove('hidden');
+
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            missed = 0;
+            level = 1;
+            gameSpeed = 1;
+            stars = [];
+            particles = [];
+            spawnTimer = 0;
+
+            updateUI();
+            gameRunning = true;
+            gameLoop();
+        }
+
+        // End game
+        function endGame() {
+            gameRunning = false;
+            document.getElementById('finalScore').innerHTML = `🏆 Final Score: <span class="highlight">${score}</span>`;
+            document.getElementById('finalStars').innerHTML = `⭐ Stars Caught: <span class="highlight">${Math.floor(score / 10)}</span>`;
+            document.getElementById('finalCombo').innerHTML = `🔥 Max Combo: <span class="highlight">x${maxCombo}</span>`;
+            document.getElementById('finalLevel').innerHTML = `📈 Level Reached: <span class="highlight">${level}</span>`;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+
+        // Restart game
+        function restartGame() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            startGame();
+        }
+
+        // Draw animated background stars
+        function drawBackgroundStars() {
+            ctx.fillStyle = 'white';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2;
+                ctx.fillRect(x, y, size, size);
+            }
+        }
+
+        // Initial background
+        drawBackgroundStars();
+    </script>
+</body>
+</html>
